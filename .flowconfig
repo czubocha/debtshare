@@ -1,0 +1,13 @@
+[ignore]
+.*/node_modules/
+
+[include]
+
+[libs]
+node_modules/react-native/Libraries/react-native/react-native-interface.js
+
+[lints]
+all=warn
+
+[options]
+include_warnings=true
