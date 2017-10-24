@@ -24,17 +24,10 @@ firebase.initializeApp({
 
 let db = firebase.firestore();
 
-export default class HomeScreen extends React.Component<navigationOptions> {
+export default class HomeScreen extends React.Component {
   static navigationOptions = {
     header: null,
   };
-
-  foo(x: ?number): string {
-    if (x) {
-      return x;
-    }
-    return "default string";
-  }
 
   render() {
     return (
