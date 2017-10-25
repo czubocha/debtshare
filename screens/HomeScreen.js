@@ -61,7 +61,7 @@ export default class HomeScreen extends React.Component {
             </View>
 
             <Text style={styles.getStartedText}>
-              siemka
+              ZALOGOWANO!!! :D
             </Text>
             <TouchableOpacity
               onPress={this.addToFirestore}
@@ -115,7 +115,6 @@ export default class HomeScreen extends React.Component {
 
   _maybeRenderDevelopmentModeWarning() {
     if (__DEV__) {
-      console.log(__DEV__);
       const learnMoreButton = (
         <Text onPress={this._handleLearnMorePress} style={styles.helpLinkText}>
           Learn more

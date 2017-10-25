@@ -1,15 +1,48 @@
-import { Notifications } from 'expo';
-import React from 'react';
-import { StackNavigator } from 'react-navigation';
+// @flow
 
+import {Notifications, Facebook} from 'expo';
+import React from 'react';
+import {View, Text, Button, Alert} from 'react-native';
+import {StackNavigator} from 'react-navigation';
+
+// import LoginScreen from '../screens/LoginScreen';
 import MainTabNavigator from './MainTabNavigator';
 import registerForPushNotificationsAsync from '../api/registerForPushNotificationsAsync';
+
+const LoginScreen = ({navigation}) => (
+  <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+    <Text>Login Screen</Text>
+    <Button
+      title="Login with Facebook"
+      onPress={() => logIn(navigation)}
+    />
+  </View>
+);
+
+const logIn = async (navigation) => {
+  const { type, token } = await Facebook.logInWithReadPermissionsAsync('232916540574459',
+    {behavior: 'web'});
+  console.log(type);
+  if (type === 'success') {
+    // Get the user's name using Facebook's Graph API
+    // const response = await fetch(
+    //   `https://graph.facebook.com/me?access_token=${token}`);
+    // Alert.alert(
+    //   'Logged in!',
+    //   `Hi ${(await response.json()).name}! Your token is ${response.json().token}.`,
+    // );
+    navigation.navigate('Tabs');
+  }
+};
 
 const RootStackNavigator = StackNavigator(
   {
     Main: {
-      screen: MainTabNavigator,
+      screen: LoginScreen,
     },
+    Tabs: {
+      screen: MainTabNavigator,
+    }
   },
   {
     navigationOptions: () => ({
@@ -30,7 +63,7 @@ export default class RootNavigator extends React.Component {
   }
 
   render() {
-    return <RootStackNavigator />;
+    return <RootStackNavigator/>;
   }
 
   _registerForPushNotifications() {
@@ -46,7 +79,7 @@ export default class RootNavigator extends React.Component {
     );
   }
 
-  _handleNotification = ({ origin, data }) => {
+  _handleNotification = ({origin, data}) => {
     console.log(
       `Push notification ${origin} with data: ${JSON.stringify(data)}`
     );

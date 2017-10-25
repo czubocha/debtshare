@@ -7,6 +7,7 @@
       <option name="FORCE_QUOTE_STYlE" value="true" />
     </JSCodeStyleSettings>
     <codeStyleSettings language="JavaScript">
+      <option name="INDENT_CASE_FROM_SWITCH" value="false" />
       <indentOptions>
         <option name="INDENT_SIZE" value="2" />
         <option name="CONTINUATION_INDENT_SIZE" value="2" />
