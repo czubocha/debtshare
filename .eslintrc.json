@@ -9,21 +9,23 @@
   "extends": [
     "eslint:recommended",
     "plugin:react/recommended",
-    "plugin:react-native/all",
-    "plugin:flowtype/recommended"
+    "plugin:react-native/all"
   ],
   "parserOptions": {
+    "ecmaVersion": 6,
     "ecmaFeatures": {
-      "jsx": true
+      "jsx": true,
+      "modules": true,
+      "experimentalObjectRestSpread": true
     },
     "sourceType": "module"
   },
   "plugins": [
     "react",
-    "react-native",
-    "flowtype"
+    "react-native"
   ],
   "rules": {
+    "strict": 0,
     "indent": [
       "error",
       2

@@ -1,10 +1,10 @@
-// @flow
-
 import React from 'react';
 import {Image} from 'react-native';
 import {AppLoading, Asset, Font} from 'expo';
 import {FontAwesome} from '@expo/vector-icons';
-import RootNavigation from './navigation/RootNavigation';
+import LoginScreen from './screens/LoginScreen';
+import * as firebase from 'firebase/index';
+import RootNavigator from './navigation/RootNavigation';
 
 function cacheImages(images) {
   return images.map(image => {
@@ -35,6 +35,8 @@ export default class App extends React.Component {
       {'space-mono': require('./assets/fonts/SpaceMono-Regular.ttf')},
     ]);
 
+    window.Image = () => {};
+
     await Promise.all([...imageAssets, ...fontAssets]);
   }
 
@@ -50,7 +52,7 @@ export default class App extends React.Component {
     }
 
     return (
-      <RootNavigation/>
+      <RootNavigator/>
     );
   }
 }

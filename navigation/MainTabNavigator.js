@@ -1,5 +1,3 @@
-// @flow
-
 import React from 'react';
 import {Platform} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
@@ -8,19 +6,19 @@ import {TabNavigator, TabBarBottom} from 'react-navigation';
 import Colors from '../constants/Colors';
 
 import HomeScreen from '../screens/HomeScreen';
-import LinksScreen from '../screens/LinksScreen';
-import SettingsScreen from '../screens/SettingsScreen';
+import FriendsScreen from '../screens/FriendsScreen';
+import UserScreen from '../screens/UserScreen';
 
-export default TabNavigator(
+const RootTabNavigator = TabNavigator(
   {
     Home: {
       screen: HomeScreen,
     },
-    Links: {
-      screen: LinksScreen,
+    Friends: {
+      screen: FriendsScreen,
     },
     Settings: {
-      screen: SettingsScreen,
+      screen: UserScreen,
     },
   },
   {
@@ -34,7 +32,7 @@ export default TabNavigator(
             ? `ios-information-circle${focused ? '' : '-outline'}`
             : 'md-information-circle';
           break;
-        case 'Links':
+        case 'Friends':
           iconName = Platform.OS === 'ios'
             ? `ios-link${focused ? '' : '-outline'}`
             : 'md-link';
@@ -56,7 +54,13 @@ export default TabNavigator(
     }),
     tabBarComponent: TabBarBottom,
     tabBarPosition: 'bottom',
-    animationEnabled: false,
-    swipeEnabled: false,
+    animationEnabled: true,
+    swipeEnabled: true,
   }
 );
+
+export default class MainTabNavigator extends React.Component {
+  render() {
+    return <RootTabNavigator/>;
+  }
+}
