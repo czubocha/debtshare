@@ -1,9 +1,9 @@
 import React from 'react';
 import {View, TextInput, TouchableOpacity, StyleSheet, Text} from 'react-native';
 import colors from '../constants/Colors';
-import {Button, FormInput, FormLabel} from 'react-native-elements';
+import {Button, FormInput, FormLabel, FormValidationMessage} from 'react-native-elements';
 
-const CredentialsFormComponent = ({onEmailChange, onPasswordChange, submitHandler, submitText}) => (
+const CredentialsFormComponent = ({onEmailChange, onPasswordChange, submitHandler, submitText, validationMessageEmailVisible, validationMessagePasswordVisible, validationMessageEmail, validationMessagePassword, onEmailFocus, onPasswordFocus}) => (
   <View>
     <FormLabel>Email</FormLabel>
     <FormInput
@@ -12,15 +12,18 @@ const CredentialsFormComponent = ({onEmailChange, onPasswordChange, submitHandle
       returnKeyType='next'
       onChangeText={onEmailChange}
       onSubmitEditing={passwordInputFocus}/>
+    {validationMessageEmailVisible && <FormValidationMessage>{validationMessageEmail}</FormValidationMessage>}
     <FormLabel>Password</FormLabel>
     <FormInput
       placeholder='password'
       secureTextEntry
+      returnKeyType='send'
       onChangeText={onPasswordChange}
+      onSubmitEditing={submitHandler}
       ref={passwordInputRef}/>
+    {validationMessagePasswordVisible && <FormValidationMessage>{validationMessagePassword}</FormValidationMessage>}
     <Button
       title={submitText}
-      backgroundColor={colors.dark}
       borderRadius={20}
       raised
       onPress={submitHandler}

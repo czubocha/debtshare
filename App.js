@@ -5,6 +5,7 @@ import {FontAwesome} from '@expo/vector-icons';
 import LoginScreen from './screens/LoginScreen';
 import * as firebase from 'firebase/index';
 import RootNavigator from './navigation/RootNavigation';
+import MainTabNavigator from './navigation/MainTabNavigator';
 
 function cacheImages(images) {
   return images.map(image => {
@@ -19,6 +20,12 @@ function cacheImages(images) {
 function cacheFonts(fonts) {
   return fonts.map(font => Font.loadAsync(font));
 }
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyCOGVNsrV3lj-IzTk_wAOx66K3s4lwN3DA',
+  authDomain: 'debtshare.firebaseapp.com',
+  projectId: 'debtshare'
+};
 
 export default class App extends React.Component {
   state = {
@@ -35,7 +42,10 @@ export default class App extends React.Component {
       {'space-mono': require('./assets/fonts/SpaceMono-Regular.ttf')},
     ]);
 
-    window.Image = () => {};
+    window.Image = () => {
+    };
+
+    firebase.initializeApp(firebaseConfig);
 
     await Promise.all([...imageAssets, ...fontAssets]);
   }
@@ -51,8 +61,8 @@ export default class App extends React.Component {
       );
     }
 
-    return (
-      <RootNavigator/>
-    );
+    return <RootNavigator user={this.state.user}/>;
+    // console.log('render changed ', this.state.user ? this.state.user.email : 'user null');
+    // return this.state.user ? <MainTabNavigator/> : <RootNavigator/>;
   }
 }

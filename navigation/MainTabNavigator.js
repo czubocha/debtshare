@@ -8,6 +8,8 @@ import Colors from '../constants/Colors';
 import HomeScreen from '../screens/HomeScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 import UserScreen from '../screens/UserScreen';
+import FriendInfoScreen from '../screens/FriendInfoScreen';
+import FriendInfo from './FriendInfoNavigator';
 
 const RootTabNavigator = TabNavigator(
   {

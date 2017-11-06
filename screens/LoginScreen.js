@@ -1,6 +1,9 @@
 import {BlurView, Facebook, SecureStore} from 'expo';
 import React from 'react';
-import {StyleSheet, KeyboardAvoidingView, ActivityIndicator, Button as RNButton} from 'react-native';
+import {
+  StyleSheet, KeyboardAvoidingView, ActivityIndicator, Button as RNButton,
+  TouchableWithoutFeedback, Keyboard, View, Alert
+} from 'react-native';
 import firebase from 'firebase';
 import colors from '../constants/Colors';
 import LogoComponent from '../components/LogoComponent';
@@ -18,6 +21,10 @@ export default class LoginScreen extends React.Component {
     password: '',
     loading: false,
     fbLoading: false,
+    validationMessageEmailVisible: false,
+    validationMessagePasswordVisible: false,
+    validationMessageEmail: '',
+    validationMessagePassword: '',
   };
 
   render() {
@@ -25,74 +32,99 @@ export default class LoginScreen extends React.Component {
       <KeyboardAvoidingView
         behavior='padding'
         style={styles.container}>
-        <LogoComponent/>
-        <SocialIcon
-          title='Sign In With Facebook'
-          button
-          loading={this.state.fbLoading}
-          type='facebook'
-          onPress={this.logInFlow}
-        />
-        <CredentialsFormComponent
-          onEmailChange={this.onEmailChange}
-          onPasswordChange={this.onPasswordChange}
-          submitHandler={this.signInToFirebaseWithCredentials}
-          submitText='Login'/>
-        <RNButton
-          title={`Don't have account? Sign up`}
-          onPress={this.navToSignUp}
-        />
-        {this.state.loading && <LoadingComponent/>}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={{flex: 1}}>
+            <LogoComponent/>
+            <SocialIcon
+              title='Sign In With Facebook'
+              button
+              loading={this.state.fbLoading}
+              type='facebook'
+              onPress={this.logInWithFb}
+            />
+            <CredentialsFormComponent
+              onEmailChange={this.onEmailChange}
+              onPasswordChange={this.onPasswordChange}
+              submitHandler={this.signInWithCredentials}
+              submitText='Login'
+              validationMessageEmail={this.state.validationMessageEmail}
+              validationMessagePassword={this.state.validationMessagePassword}
+              validationMessageEmailVisible={this.state.validationMessageEmailVisible}
+              validationMessagePasswordVisible={this.state.validationMessagePasswordVisible}/>
+            <RNButton
+              title={`Don't have account? Sign up`}
+              onPress={this.navToSignUp}
+            />
+            {this.state.loading && <LoadingComponent/>}
+          </View>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     );
   }
 
-  onEmailChange = (email) => this.setState({email});
+  componentWillMount = () => {
+    this.setState({loading: true});
+    const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        SecureStore.setItemAsync('user', JSON.stringify(user));
+        // console.log('login screen listener: user logged in, navigate to Main');
+        this.props.navigation.navigate('Main');
+      }
+    });
+    this.setState({loading: false});
+  };
 
-  onPasswordChange = (password) => this.setState({password});
+  onEmailChange = (email) => {
+    this.setState({validationMessageEmailVisible: false});
+    this.setState({validationMessageEmail: ''});
+    this.setState({email});
+  };
+
+  onPasswordChange = (password) => {
+    this.setState({validationMessagePasswordVisible: false});
+    this.setState({validationMessagePassword: ''});
+    this.setState({password});
+  };
 
   navToSignUp = () => this.props.navigation.navigate('SignUp');
 
-  signInToFirebaseWithCredentials = async () => {
+  signInWithCredentials = async () => {
     this.setState({loading: true});
     try {
       await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
       this.props.navigation.navigate('Main');
     } catch (error) {
-      console.error(error);
+      switch (error.code) {
+      case 'auth/invalid-email':
+        this.setState({validationMessageEmailVisible: true});
+        this.setState({validationMessageEmail: error.message});
+        break;
+      case 'auth/user-not-found':
+        this.setState({validationMessageEmailVisible: true});
+        this.setState({validationMessageEmail: error.message});
+        break;
+      case 'auth/wrong-password':
+        this.setState({validationMessagePasswordVisible: true});
+        this.setState({validationMessagePassword: error.message});
+        break;
+      }
     }
-    console.log(this.state.email + ' ' + this.state.password + ' logged in with credentials');
+    this.setState({loading: false});
   };
 
-  signInToFirebaseWithToken = async (token) => {
-    const credential = firebase.auth.FacebookAuthProvider.credential(token);
+  logInWithFb = async () => {
+    this.setState({fbLoading: true});
     try {
-      this.setState({fbLoading: true});
-      await firebase.auth().signInWithCredential(credential);
-      this.props.navigation.navigate('Main');
+      const {type, token} = await Facebook.logInWithReadPermissionsAsync(appId);
+      if (type === 'success') {
+        const credential = firebase.auth.FacebookAuthProvider.credential(token);
+        await firebase.auth().signInWithCredential(credential);
+      }
     } catch (error) {
+      Alert.alert('Something went wrong', 'Try again');
       console.error(error);
     }
-  };
-
-  logInWithFb = async (appId) => {
-    const {type, token} = await Facebook.logInWithReadPermissionsAsync(appId);
-    if (type === 'success') {
-      SecureStore.setItemAsync(tokenName, token);
-    }
-    return token;
-  };
-
-  logInFlow = async () => {
-    const token = await SecureStore.getItemAsync(tokenName);
-    if (token) {
-      this.signInToFirebaseWithToken(token);
-      console.log('logged in from stored token');
-    } else {
-      const token = this.logInWithFb(appId);
-      this.signInToFirebaseWithToken(token);
-      console.log('logged in by passed credentials');
-    }
+    this.setState({fbLoading: false});
   };
 }
 

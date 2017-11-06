@@ -1,5 +1,6 @@
-import {Notifications} from 'expo';
 import React from 'react';
+import {Notifications} from 'expo';
+import {Alert, Text, View} from 'react-native';
 import {StackNavigator} from 'react-navigation';
 
 import LoginScreen from '../screens/LoginScreen';
@@ -7,12 +8,13 @@ import MainTabNavigator from './MainTabNavigator';
 import registerForPushNotificationsAsync from '../api/registerForPushNotificationsAsync';
 import SignUpScreen from '../screens/SignUpScreen';
 import colors from '../constants/Colors';
-import * as firebase from 'firebase/index';
+import FriendInfoScreen from '../screens/FriendInfoScreen';
 
 const RootStackNavigator = StackNavigator(
   {
     Login: {
       screen: LoginScreen,
+      routeName: 'Login',
       navigationOptions:
         {
           header: null,
@@ -35,34 +37,29 @@ const RootStackNavigator = StackNavigator(
           header: null,
           gesturesEnabled: false
         }
-    }
+    },
+    FriendInfo: {
+      screen: FriendInfoScreen,
+    },
   },
   {
     mode: 'modal',
   });
-
-const firebaseConfig = {
-  apiKey: 'AIzaSyCOGVNsrV3lj-IzTk_wAOx66K3s4lwN3DA',
-  authDomain: 'debtshare.firebaseapp.com',
-  projectId: 'debtshare'
-};
 
 export let navigatorRef;
 
 export default class RootNavigator extends React.Component {
   componentDidMount() {
     this._notificationSubscription = this._registerForPushNotifications();
-    firebase.initializeApp(firebaseConfig);
     navigatorRef = this.navigator;
   }
 
   componentWillUnmount() {
+    console.log('root navigator unmount');
     this._notificationSubscription && this._notificationSubscription.remove();
   }
 
-  render() {
-    return <RootStackNavigator ref={nav => this.navigator = nav}/>;
-  }
+  render(){return <RootStackNavigator ref={nav => this.navigator = nav}/>}
 
   _registerForPushNotifications() {
     // Send our push token over to our backend so we can receive notifications
@@ -78,9 +75,7 @@ export default class RootNavigator extends React.Component {
   }
 
   _handleNotification = ({origin, data}) => {
-    console.log(
-      `Push notification ${origin} with data: ${JSON.stringify(data)}`
-    );
+    console.log(`Push notification ${origin} with data: ${JSON.stringify(data)}`);
+    // Alert.alert('Notification', `You received notification from ${origin}`);
   };
 }
-

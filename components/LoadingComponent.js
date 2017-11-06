@@ -1,12 +1,13 @@
 import React from 'react';
 import {BlurView} from 'expo';
-import {ActivityIndicator, StyleSheet} from 'react-native';
+import {ActivityIndicator, StyleSheet, View} from 'react-native';
 
 const LoadingComponent = () => (
   <BlurView style={StyleSheet.absoluteFill}>
-    <ActivityIndicator
-      style={styles.indicator}
-      size='large'/>
+    <View style={styles.indicator}>
+      <ActivityIndicator
+        size='large'/>
+    </View>
   </BlurView>
 );
 

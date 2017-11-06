@@ -8,11 +8,14 @@ import UserInfoComponent from '../components/UserInfoComponent';
 import {Button} from 'react-native-elements';
 import LoadingComponent from '../components/LoadingComponent';
 import 'firebase/firestore';
+import {SecureStore} from 'expo';
 
 export default class UserScreen extends React.Component {
   state = {
     user: {},
     loading: false,
+    listenerWork: false,
+    unsubscribe: {},
   };
 
   render() {
@@ -22,36 +25,37 @@ export default class UserScreen extends React.Component {
           user={this.state.user}/>
         <Button
           title='Logout'
-          onPress={this.logout}>
-        </Button>
+          raised
+          borderRadius={20}
+          onPress={this.logout}/>
         {this.state.loading && <LoadingComponent/>}
       </View>
     );
   }
 
-  componentDidMount = () => {
-    firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        console.log(user);
-        console.log(user.uid + ' logged in');
-        this.setState({user});
-      } else {
-        console.log('logged out');
-        this.setState({user: {}});
-      }
+  componentWillMount = () => {
+    this.setState({
+      unsubscribe: firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          console.log('user screen listener: ', user.uid + ' logged in');
+          this.setState({user});
+        } else {
+          // console.log('user screen listener: logged out');
+          this.setState({user: {}});
+        }
+      })
     });
   };
 
   logout = async () => {
     try {
-      // firebase.firestore().collection('users').onSnapshot(() => {})();
       this.setState({loading: true});
       await firebase.auth().signOut();
-      console.log('logged out');
       const nav = NavigationActions.navigate({
         routeName: 'Login',
       });
       navigatorRef.dispatch(nav);
+      this.state.unsubscribe();
     } catch (error) {
       console.error(error);
     }
