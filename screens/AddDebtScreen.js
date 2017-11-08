@@ -1,7 +1,7 @@
 import React from 'react';
-import {Button as NButton, Container, Header, Icon, Input, Item, Left} from 'native-base';
-import {Avatar, Button as RNEButton, CheckBox, List, ListItem} from 'react-native-elements';
-import {FlatList, StyleSheet, View} from 'react-native';
+import {Button as NButton, Container, Header, Icon, Input, Item, Left, Picker} from 'native-base';
+import {Avatar, Button as RNEButton, CheckBox, FormInput, FormLabel, List, ListItem} from 'react-native-elements';
+import {FlatList, KeyboardAvoidingView, StyleSheet, TextInput, View, Alert} from 'react-native';
 import 'firebase/firestore';
 import * as firebase from 'firebase';
 import colors from '../constants/Colors';
@@ -11,6 +11,9 @@ export default class AddDebtComponent extends React.Component {
     friends: [],
     filterText: '',
     checked: false,
+    amount: 0,
+    description: '',
+    category: '',
   };
 
   render() {
@@ -34,16 +37,39 @@ export default class AddDebtComponent extends React.Component {
           renderItem={this.renderRow}
           data={this.state.friends.filter(user => user.name.toLowerCase().startsWith(this.state.filterText.toLowerCase()))}
         />
-        <View style={styles.buttons}>
+        <KeyboardAvoidingView
+          behavior='padding'
+          style={styles.footer}>
+          <FormLabel>Amount</FormLabel>
+          <FormInput
+            onChangeText={this.onChangeAmount}
+            inputStyle={styles.amountInput}
+          />
+          <FormLabel>Description</FormLabel>
+          <FormInput
+            onChangeText={this.onChangeDescription}
+            inputStyle={styles.description}
+          />
+          <Picker
+            mode="dropdown"
+            placeholder='Select category'
+            selectedValue={this.state.category}
+            onValueChange={this.onCategoryChange}>
+            <Item label="Food" value="Food"/>
+            <Item label="Cleaning agents" value="Cleaning agents"/>
+            <Item label="Electronics" value="Electronics"/>
+            <Item label="Other" value="Other"/>
+            <Item label="Repayment of debt" value="Repayment of debt"/>
+          </Picker>
           <CheckBox
             title='Split considering yourself'
             checked={this.state.checked}
-            textStyle={{fontSize: 10}}
+            // textStyle={{fontSize: 10}}
             containerStyle={{backgroundColor: 'transparent'}}
             onPress={this.onCheckboxPress}
           />
-          <RNEButton title='Split' borderRadius={20} raised containerViewStyle={{flex: 1}} onPress={this.split}/>
-        </View>
+          <RNEButton title='Split' borderRadius={20} raised onPress={this.split}/>
+        </KeyboardAvoidingView>
       </Container>
     );
   }
@@ -76,6 +102,12 @@ export default class AddDebtComponent extends React.Component {
 
   onFilterChange = (filterText) => this.setState({filterText});
 
+  onCategoryChange = category => this.setState({category});
+
+  onChangeDescription = description => this.setState({description});
+
+  onChangeAmount = amount => this.setState({amount});
+
   renderRow = ({item, index}) => (
     <ListItem
       avatar={(item.photoURL) ?
@@ -99,10 +131,55 @@ export default class AddDebtComponent extends React.Component {
     // this.setState(prevState => prevState.friends[index].switched);
   };
 
-  split = () => {
+  split = async () => {
+    const user = this.props.navigation.state.params.user;
+    const db = firebase.firestore();
+    const friendsToSplit = [];
     this.state.friends.forEach(friend => {
-      friend.switched && console.log(friend);
+      friend.switched && friendsToSplit.push(friend);
     });
+    friendsToSplit.forEach(async friend => {
+      const isFriend = await db.collection('users').doc(friend.email)
+        .collection('friends').doc(user.email).get();
+      if (!isFriend.exists) {
+        Alert.alert('Hey!',
+          `${friend.name} has not added you to friends`,
+          [{
+            text: 'Okey :(', onPress: () => {
+              this.setModalVisible();
+              this.setLoading();
+            }
+          }]);
+        return;
+      }
+    });
+    let total = String(this.state.amount).replace(',', '.');
+    total = parseFloat(total);
+    const amount = this.state.checked ? total / (friendsToSplit.length + 1) : total / friendsToSplit.length;
+    const promises = [];
+    friendsToSplit.forEach(friend => {
+      promises.push(db.collection('users').doc(user.email)
+        .collection('friends').doc(friend.email)
+        .collection('debts').add({
+          description: this.state.description,
+          amount: amount,
+          category: this.state.category,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          rewritten: false,
+        }));
+      promises.push(db.collection('users').doc(user.email)
+        .collection('friends').doc(friend.email)
+        .update({
+          balance: Number((friend.balance + amount).toFixed(2)),
+        }));
+    });
+    await Promise.all(promises);
+    console.log('total ', total);
+    console.log('amount ', amount);
+    friendsToSplit.forEach(friend => {
+      console.log(friend);
+    });
+    promises.forEach(promise => console.log('promise ', promise));
   };
 }
 
@@ -111,9 +188,19 @@ const styles = StyleSheet.create({
   buttons: {
     flexWrap: 'wrap',
     flexDirection: 'row',
-    backgroundColor: colors.tabIconDefault,
     justifyContent: 'space-between',
     alignItems: 'center'
   },
+  footer: {
+    backgroundColor: 'white',
+    padding: 5,
+  },
+  amountInput: {
+    width: 100,
+  },
+  forms: {
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+  }
 });
 

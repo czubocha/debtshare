@@ -5,3 +5,4 @@ npm-debug.*
 .idea/**/tasks.xml
 .idea/dictionaries
 /functions/node_modules/
+yarn-error.log
