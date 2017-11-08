@@ -9,6 +9,7 @@ import registerForPushNotificationsAsync from '../api/registerForPushNotificatio
 import SignUpScreen from '../screens/SignUpScreen';
 import colors from '../constants/Colors';
 import FriendInfoScreen from '../screens/FriendInfoScreen';
+import AddDebtScreen from '../screens/AddDebtScreen';
 
 const RootStackNavigator = StackNavigator(
   {
@@ -40,6 +41,12 @@ const RootStackNavigator = StackNavigator(
     },
     FriendInfo: {
       screen: FriendInfoScreen,
+    },
+    AddDebt: {
+      screen: AddDebtScreen,
+      navigationOptions: {
+        header: null,
+      }
     },
   },
   {

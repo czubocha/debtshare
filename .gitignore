@@ -4,3 +4,4 @@ npm-debug.*
 .idea/**/workspace.xml
 .idea/**/tasks.xml
 .idea/dictionaries
+/functions/node_modules/

@@ -7,7 +7,6 @@ import {
 import firebase from 'firebase';
 import colors from '../constants/Colors';
 import LogoComponent from '../components/LogoComponent';
-import FacebookButtonComponent from '../components/FacebookButtonComponent';
 import CredentialsFormComponent from '../components/CredentialsFormComponent';
 import {Button, SocialIcon} from 'react-native-elements';
 import LoadingComponent from '../components/LoadingComponent';
