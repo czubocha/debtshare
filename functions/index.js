@@ -118,3 +118,129 @@ exports.createUserProfile = functions.auth.user().onCreate(event => {
     events: [],
   });
 });
+
+exports.calculateStatistics = functions.https.onRequest((req, res) => {
+  const email = req.body.email;
+  let maxBalance = Number.MIN_SAFE_INTEGER;
+  let minBalance = Number.MAX_SAFE_INTEGER;
+  let maxFriend = '';
+  let minFriend = '';
+  let food = {
+    name: 'Food',
+    my: 0,
+    friend: 0
+  };
+  let electronics = {
+    name: 'Electronics',
+    my: 0,
+    friend: 0
+  };
+  let cleaning = {
+    name: 'Cleaning agents',
+    my: 0,
+    friend: 0
+  };
+  let other = {
+    name: 'Other',
+    my: 0,
+    friend: 0
+  };
+  let repayments = {
+    name: 'Repayment of debt',
+    my: 0,
+    friend: 0
+  };
+  let promises = [];
+  // console.log(email);
+  return db.collection('users').doc(email).collection('friends').get()
+    .then(friends => {
+      friends.forEach(doc => {
+        let temp = doc.data();
+        // console.log(temp);
+        if (temp.balance > maxBalance) {
+          maxBalance = temp.balance;
+          maxFriend = temp.name;
+        }
+        if (temp.balance < minBalance) {
+          minBalance = temp.balance;
+          minFriend = temp.name;
+        }
+        promises.push(doc.ref.collection('debts').get());
+      });
+    })
+    .then(() => Promise.all(promises))
+    .then(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        doc.forEach(doc => {
+          const debt = doc.data();
+          const amount = debt.amount;
+          // console.log('debt amount: ', amount);
+          // console.log('deb category: ', debt.category);
+          if (amount > 0) {
+            switch (debt.category) {
+            case 'Food':
+              food.friend += amount;
+              break;
+            case 'Other':
+              other.friend += amount;
+              break;
+            case 'Electronics':
+              electronics.friend += amount;
+              break;
+            case 'Cleaning agents':
+              cleaning.friend += amount;
+              break;
+            case 'Repayment of debt':
+              repayments.friend += amount;
+              break;
+            }
+          }
+          if (amount < 0) {
+            switch (debt.category) {
+            case 'Food':
+              food.my += amount;
+              break;
+            case 'Other':
+              other.my += amount;
+              break;
+            case 'Electronics':
+              electronics.my += amount;
+              break;
+            case 'Cleaning agents':
+              cleaning.my += amount;
+              break;
+            case 'Repayment of debt':
+              repayments.my += amount;
+              break;
+            }
+          }
+        });
+      });
+    })
+    .then(() => {
+      const categories = [food, electronics, cleaning, other, repayments];
+      // console.log(categories);
+      let maxFriendCategoryAmount = Number.MIN_SAFE_INTEGER;
+      let minMyCategoryAmount = Number.MAX_SAFE_INTEGER;
+      let maxFriendCategoryName = '';
+      let minMyCategoryName = '';
+
+      categories.forEach(category => {
+        if (category.friend > maxFriendCategoryAmount) {
+          maxFriendCategoryAmount = category.friend;
+          maxFriendCategoryName = category.name;
+        }
+        if (category.my < minMyCategoryAmount) {
+          minMyCategoryAmount = category.my;
+          minMyCategoryName = category.name;
+        }
+      });
+
+      const response = {
+        maxBalance, maxFriend: maxFriend, minBalance, minFriend,
+        maxFriendCategoryAmount, maxFriendCategoryName, minMyCategoryAmount, minMyCategoryName
+      };
+      res.status(200).send(response);
+    })
+    .catch(error => console.error(error));
+});
