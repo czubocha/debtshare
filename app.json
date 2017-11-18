@@ -4,7 +4,7 @@
     "description": "just forget about debts",
     "slug": "debtshare",
     "privacy": "public",
-    "sdkVersion": "22.0.0",
+    "sdkVersion": "23.0.0",
     "version": "1.0.0",
     "orientation": "portrait",
     "primaryColor": "#b8ff77",

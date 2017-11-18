@@ -67,7 +67,9 @@ export default class LoginScreen extends React.Component {
       if (user) {
         SecureStore.setItemAsync('user', JSON.stringify(user));
         // console.log('login screen listener: user logged in, navigate to Main');
-        this.props.navigation.navigate('Main');
+        console.log(user);
+        if (user.emailVerified)
+          this.props.navigation.navigate('Main');
       }
     });
     this.setState({loading: false});
@@ -90,8 +92,16 @@ export default class LoginScreen extends React.Component {
   signInWithCredentials = async () => {
     this.setState({loading: true});
     try {
-      await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
-      this.props.navigation.navigate('Main');
+      const user = await firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password);
+      if (!user.emailVerified) {
+        this.setState({loading: false});
+        Alert.alert(
+          'Confirm sign up',
+          'Check you mailbox, click verification link and come back here'
+        );
+      } else {
+        this.props.navigation.navigate('Main');
+      }
     } catch (error) {
       switch (error.code) {
       case 'auth/invalid-email':
@@ -113,11 +123,30 @@ export default class LoginScreen extends React.Component {
 
   logInWithFb = async () => {
     this.setState({fbLoading: true});
+    const db = firebase.firestore();
     try {
       const {type, token} = await Facebook.logInWithReadPermissionsAsync(appId);
       if (type === 'success') {
         const credential = firebase.auth.FacebookAuthProvider.credential(token);
-        await firebase.auth().signInWithCredential(credential);
+        const user = await firebase.auth().signInWithCredential(credential);
+        if (!user.emailVerified) {
+          await db.collection('users').doc(user.email).set({
+            uid: user.uid,
+            email: user.email,
+            name: user.displayName,
+            photoURL: user.photoURL,
+            events: [],
+          });
+          await user.sendEmailVerification();
+          this.setState({loading: false});
+          Alert.alert(
+            'Confirm sign up',
+            'Check you mailbox, click verification link and come back here'
+          );
+          console.log('sent');
+        } else {
+          this.props.navigation.navigate('Main');
+        }
       }
     } catch (error) {
       Alert.alert('Something went wrong', 'Try again');

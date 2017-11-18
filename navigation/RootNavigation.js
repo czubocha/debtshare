@@ -10,6 +10,7 @@ import SignUpScreen from '../screens/SignUpScreen';
 import colors from '../constants/Colors';
 import FriendInfoScreen from '../screens/FriendInfoScreen';
 import AddDebtScreen from '../screens/AddDebtScreen';
+import StatisticsScreen from '../screens/StatisticsScreen';
 
 const RootStackNavigator = StackNavigator(
   {
@@ -46,6 +47,12 @@ const RootStackNavigator = StackNavigator(
       screen: AddDebtScreen,
       navigationOptions: {
         header: null,
+      }
+    },
+    Statistics: {
+      screen: StatisticsScreen,
+      navigationOptions: {
+        title: 'Statistics',
       }
     },
   },

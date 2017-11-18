@@ -143,10 +143,9 @@ export default class FriendInfoScreen extends React.Component {
                 <Body>
                 <Text>{debt.description}</Text>
                 {debt.timestamp &&
-                <Text
-                  note>{debt.timestamp.getDate()}.
+                <Text note>{debt.timestamp.getDate()}.
                   {debt.timestamp.getMonth() + 1}.
-                  {debt.timestamp.getFullYear()}
+                  {debt.timestamp.getFullYear()}{' '}
                   {debt.timestamp.getHours()}:
                   {debt.timestamp.getMinutes()}
                 </Text>}
@@ -188,7 +187,7 @@ export default class FriendInfoScreen extends React.Component {
     console.log(user);
     const db = firebase.firestore();
     const updateDebts = db.collection('users').doc(user.email)
-      .collection('friends').doc(friend.email).collection('debts').onSnapshot(
+      .collection('friends').doc(friend.email).collection('debts').orderBy('timestamp', 'desc').onSnapshot(
         (querySnapshot) => {
           this.setState({debts: []});
           querySnapshot.forEach((doc) => {

@@ -111,6 +111,7 @@ export default class FriendsScreen extends React.Component {
               email: newFriend.email,
               name: newFriend.name,
               balance: 0,
+              photoURL: newFriend.photoURL,
             });
           });
 
@@ -130,7 +131,7 @@ export default class FriendsScreen extends React.Component {
 
   getFriends = async () => {
     const db = firebase.firestore();
-    const unsubscribe = await db.collection('users').doc(this.state.user.email).collection('friends').onSnapshot(
+    const unsubscribe = await db.collection('users').doc(this.state.user.email).collection('friends').orderBy('balance').onSnapshot(
       (querySnapshot) => {
         querySnapshot.docChanges.forEach((change) => {
             if (change.type === 'modified') {

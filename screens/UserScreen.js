@@ -1,11 +1,11 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableHighlight, ActivityIndicator} from 'react-native';
+import {View, Text, StyleSheet, TouchableHighlight, ActivityIndicator, Modal} from 'react-native';
 import * as firebase from 'firebase';
 import {NavigationActions} from 'react-navigation';
 import {navigatorRef} from '../navigation/RootNavigation';
 import colors from '../constants/Colors';
 import UserInfoComponent from '../components/UserInfoComponent';
-import {Button} from 'react-native-elements';
+import {Button, FormInput, FormLabel} from 'react-native-elements';
 import LoadingComponent from '../components/LoadingComponent';
 import 'firebase/firestore';
 import {SecureStore} from 'expo';
@@ -16,6 +16,7 @@ export default class UserScreen extends React.Component {
     loading: false,
     listenerWork: false,
     unsubscribe: {},
+    modalVisible: false,
   };
 
   render() {
@@ -23,6 +24,7 @@ export default class UserScreen extends React.Component {
       <View style={styles.container}>
         <UserInfoComponent
           user={this.state.user}/>
+
         <Button
           title='Logout'
           raised

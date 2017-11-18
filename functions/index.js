@@ -6,6 +6,61 @@ admin.initializeApp(functions.config().firebase);
 
 let db = admin.firestore();
 
+createEvent = (eventData, eventParams, type) => {
+  const userId = eventParams.userId;
+  const friendId = eventParams.friendId;
+  const debtId = eventParams.debtId;
+
+  let events = [];
+  let name = '';
+  let photoURL = '';
+  let event = {};
+  let updateEvents = {};
+
+  console.log(userId);
+  console.log(friendId);
+  console.log(debtId);
+
+  db.collection('users').doc(userId).get().then(doc => {
+    photoURL = doc.data().photoURL;
+    name = doc.data().name;
+  })
+    .then(() => {
+      event = {
+        id: debtId,
+        type: type,
+        user: name,
+        photoURL: photoURL,
+        email: userId,
+        amount: eventData.amount,
+        description: eventData.description,
+        timestamp: eventData.timestamp,
+      };
+      console.log(event);
+    })
+    .then(() =>
+      db.collection('users').doc(friendId).get()
+        .then(doc => {
+          events = doc.data().events;
+          console.log(events);
+        })
+        .then(() => {
+          if (events.length >= 3) {
+            events = events.slice(0, 2);
+            events.unshift(event);
+            updateEvents = db.collection('users').doc(friendId).update(
+              {events: events}
+            );
+          } else {
+            events.unshift(event);
+            updateEvents = db.collection('users').doc(friendId).update(
+              {events: events}
+            );
+          }
+        }));
+  return updateEvents;
+};
+
 exports.rewriteAddedDebt = functions.firestore
   .document('users/{userId}/friends/{friendId}/debts/{debtId}')
   .onCreate(event => {
@@ -50,23 +105,26 @@ exports.rewriteEditedDebt = functions.firestore
       newDebt.rewritten = true;
       newDebt.amount = -newDebt.amount;
 
+      // const updateEvents = createEvent(newDebt, event.params, 'edit');
+
       db.collection('users').doc(friendId)
         .collection('friends').doc(userId)
-        .get().then(friend => {
+        .get()
+        .then(friend => {
 
-        const updateBalance = db.collection('users').doc(friendId)
-          .collection('friends').doc(userId)
-          .update({
-            balance: friend.data().balance + prevAmount + newDebt.amount,
-          });
+          const updateBalance = db.collection('users').doc(friendId)
+            .collection('friends').doc(userId)
+            .update({
+              balance: friend.data().balance + prevAmount + newDebt.amount,
+            });
 
-        const rewriteDebt = db.collection('users').doc(friendId)
-          .collection('friends').doc(userId)
-          .collection('debts').doc(debtId)
-          .set(newDebt);
+          const rewriteDebt = db.collection('users').doc(friendId)
+            .collection('friends').doc(userId)
+            .collection('debts').doc(debtId)
+            .set(newDebt);
 
-        return Promise.all([updateBalance, rewriteDebt]);
-      });
+          return Promise.all([updateBalance, rewriteDebt]);
+        });
     }
     return -1;
   });
@@ -107,17 +165,6 @@ exports.deleteDeletedDebt = functions.firestore
     );
     return -1;
   });
-
-exports.createUserProfile = functions.auth.user().onCreate(event => {
-  const user = event.data;
-  return db.collection('users').doc(user.email).set({
-    uid: user.uid,
-    email: user.email,
-    name: user.displayName,
-    photoURL: user.photoURL,
-    events: [],
-  });
-});
 
 exports.calculateStatistics = functions.https.onRequest((req, res) => {
   const email = req.body.email;

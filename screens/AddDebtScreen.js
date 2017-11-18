@@ -68,7 +68,7 @@ export default class AddDebtComponent extends React.Component {
             containerStyle={{backgroundColor: 'transparent'}}
             onPress={this.onCheckboxPress}
           />
-          <RNEButton title='Split' borderRadius={20} raised onPress={this.split}/>
+          <RNEButton style={{paddingBottom: 10}} title='Split' borderRadius={20} raised onPress={this.split}/>
         </KeyboardAvoidingView>
       </Container>
     );
@@ -185,6 +185,9 @@ export default class AddDebtComponent extends React.Component {
 
 
 const styles = StyleSheet.create({
+  container: {
+    paddingBottom: 10,
+  },
   buttons: {
     flexWrap: 'wrap',
     flexDirection: 'row',
@@ -194,9 +197,10 @@ const styles = StyleSheet.create({
   footer: {
     backgroundColor: 'white',
     padding: 5,
+    paddingBottom: 20,
   },
   amountInput: {
-    width: 100,
+
   },
   forms: {
     flexWrap: 'wrap',

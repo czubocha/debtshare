@@ -15,6 +15,7 @@ export default class HomeScreen extends React.Component {
   state = {
     user: {},
     loading: false,
+    events: [],
   };
 
   data = [
@@ -59,12 +60,10 @@ export default class HomeScreen extends React.Component {
           </View>
           <View style={styles.rowTextContainer}>
             <Text numberOfLines={2} style={styles.rowText}>
-              {item.type === 'friend' ?
-                item.user + ' added you to friends!' :
-                item.user + ' charged you with ' + item.amount + ' debt for ' + item.description}
+              {this.eventText(item)}
             </Text>
             <Text style={styles.timestamp}>
-              {item.timestamp}
+              {item.timestamp.getMilliseconds()}
             </Text>
           </View>
         </View>
@@ -77,14 +76,19 @@ export default class HomeScreen extends React.Component {
       <View style={styles.container}>
         <Text style={styles.title}>Recent events</Text>
         <View style={styles.list}>
+          {(this.state.events.length === 0 && this.state.loading === false) &&
+          <Text>You have no recent events :({'\n'}
+            When your friend changes you with debt you will notice it here
+          </Text>}
           <FlatList
-            data={this.data}
+            data={this.state.events}
             keyExtractor={item => item.id}
             scrollEnabled={false}
             renderItem={this.renderRow}
           />
         </View>
         <View style={styles.buttons}>
+          <Button large title='Show statistics' borderRadius={20} raised onPress={this.showStatistics}/>
           <Button large title='Add debt' borderRadius={20} raised onPress={this.addDebt}/>
         </View>
         {this.state.loading && <LoadingComponent/>}
@@ -92,19 +96,56 @@ export default class HomeScreen extends React.Component {
     );
   }
 
+  eventText = item => {
+    switch (item.type) {
+    case 'friend':
+      return item.user + ' added you to friends!';
+    case 'create':
+      return item.user + ' charged you with ' + item.amount + ' debt for ' + item.description;
+    case 'edit':
+      return item.user + ' edited debt ' + item.amount + ' for ' + item.description;
+    case 'delete':
+      return item.user + ' deleted debt ' + item.amount + ' for ' + item.description;
+    }
+  };
 
-  componentDidMount = () => {
+
+  componentDidMount = async () => {
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         this.setState({user});
+        this.loadEvents();
       } else {
         this.setState({user});
       }
     });
   };
 
+  loadEvents = async () => {
+    this.setState({loading: true});
+    const db = firebase.firestore();
+    try {
+      const userDoc = await db.collection('users').doc(this.state.user.email).get();
+      await this.setState({events: userDoc.data().events});
+      console.log(this.state.events);
+    } catch (error) {
+      console.log(error);
+    }
+    this.setState({loading: false});
+  };
+
+  showStatistics = () => {
+    const nav = NavigationActions.navigate({
+      routeName: 'Statistics',
+      params: {
+        user: this.state.user
+      },
+    });
+    navigatorRef.dispatch(nav);
+  };
+
   addDebt = () => {
-    console.log(this.state.user);
+    console.log(this.state.events);
     const nav = NavigationActions.navigate({
       routeName: 'AddDebt',
       params: {
@@ -117,7 +158,7 @@ export default class HomeScreen extends React.Component {
   showFriend = async item => {
     this.setState({loading: true});
     const db = firebase.firestore();
-    const friend = await db.collection('users').doc('x@x.pl').get();
+    const friend = await db.collection('users').doc('t@t.pl').get();
     const nav = NavigationActions.navigate({
       routeName: 'FriendInfo',
       params: {
@@ -136,7 +177,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.primaryColor,
     paddingTop: 20,
-    padding: 5,
+    padding: 10,
   },
   title: {
     paddingLeft: 5,
@@ -163,7 +204,9 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     backgroundColor: 'transparent'
   },
-  list: {},
+  list: {
+    flex: 7,
+  },
   rowTextContainer: {
     width: 0,
     flexGrow: 1,
@@ -173,7 +216,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   buttons: {
-    flex: 1,
-    justifyContent: 'flex-end'
+    flex: 3,
+    justifyContent: 'space-between'
   }
 });

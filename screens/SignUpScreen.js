@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, KeyboardAvoidingView} from 'react-native';
+import {StyleSheet, KeyboardAvoidingView, Alert} from 'react-native';
 import colors from '../constants/Colors';
 import firebase from 'firebase';
 import CredentialsFormComponent from '../components/CredentialsFormComponent';
@@ -60,10 +60,29 @@ export default class SignUpScreen extends React.Component {
 
   signUp = async () => {
     this.setLoading();
+    const db = firebase.firestore();
     try {
       const createdUser = await firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
       await createdUser.updateProfile({displayName: this.state.name});
-      this.props.navigation.navigate('Main');
+      await db.collection('users').doc(createdUser.email).set({
+        uid: createdUser.uid,
+        email: createdUser.email,
+        name: createdUser.displayName,
+        photoURL: createdUser.photoURL,
+        events: [],
+      });
+      firebase.auth().useDeviceLanguage();
+      try {
+        await firebase.auth().currentUser.sendEmailVerification();
+        this.props.navigation.goBack();
+        Alert.alert(
+          'Confirm sign up',
+          'Check you mailbox, click verification link and come back here'
+        );
+        console.log('sent');
+      } catch (error) {
+        console.log(error)
+      }
     } catch (error) {
       switch (error.code) {
       case 'auth/email-already-in-use':
