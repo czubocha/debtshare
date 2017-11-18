@@ -158,7 +158,7 @@ export default class HomeScreen extends React.Component {
   showFriend = async item => {
     this.setState({loading: true});
     const db = firebase.firestore();
-    const friend = await db.collection('users').doc('t@t.pl').get();
+    const friend = await db.collection('users').doc(item.email).get();
     const nav = NavigationActions.navigate({
       routeName: 'FriendInfo',
       params: {

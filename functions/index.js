@@ -72,6 +72,8 @@ exports.rewriteAddedDebt = functions.firestore
       newDebt.rewritten = true;
       newDebt.amount = -newDebt.amount;
 
+      const updateEvents = createEvent(newDebt, event.params, 'create');
+
       db.collection('users').doc(friendId)
         .collection('friends').doc(userId)
         .get().then(friend => {
@@ -87,7 +89,7 @@ exports.rewriteAddedDebt = functions.firestore
           .collection('debts').doc(debtId)
           .set(newDebt);
 
-        return Promise.all([updateBalance, rewriteDebt]);
+        return Promise.all([updateBalance, rewriteDebt, updateEvents]);
       });
     }
     return -1;
