@@ -1,10 +1,12 @@
 import React from 'react';
 import {View, StyleSheet, Text} from 'react-native';
 import colors from '../constants/Colors';
+import LoadingComponent from "../components/LoadingComponent";
 
 export default class StatisticsScreen extends React.Component {
   state = {
     statistics: {},
+      loading: false,
   };
 
   render() {
@@ -29,12 +31,15 @@ export default class StatisticsScreen extends React.Component {
             <Text>and how much: {this.state.statistics.minMyCategoryAmount}</Text>
           </View>
         </View>
+          {this.state.loading && <LoadingComponent/>}
       </View>
     );
   }
 
-  componentWillMount = () => {
-    return this.requestStats();
+  componentWillMount = async () => {
+      this.setState({loading: true});
+      await this.requestStats();
+      this.setState({loading: false});
   };
 
   requestStats = async () => {
@@ -53,7 +58,7 @@ export default class StatisticsScreen extends React.Component {
         });
       const responseJson = await response.json();
       this.setState({statistics: responseJson});
-      console.log(this.state.statistics);
+      // console.log(this.state.statistics);
     } catch (error) {
       console.error(error);
     }

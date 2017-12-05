@@ -19,17 +19,20 @@ export default (async function registerForPushNotificationsAsync() {
 
   // let logged = null;
 
-  firebase.auth().onAuthStateChanged(async (user) => {
+  const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+    // if (user) {
+    // console.log('user logged in!');
+    const db = firebase.firestore();
     if (user) {
-      // console.log('user logged in!');
-      const db = firebase.firestore();
       console.log('saving ', token, ' in firestore for ', user.email);
       await db.collection('users').doc(user.email).update({
         token: token
       });
-    } else {
-      console.log('token not sent, not logged');
     }
+    unsubscribe();
+    // } else {
+    //   console.log('token not sent, not logged');
+    // }
   });
 
   // console.log(logged);

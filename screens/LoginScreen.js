@@ -28,51 +28,51 @@ export default class LoginScreen extends React.Component {
 
   render() {
     return (
-      <KeyboardAvoidingView
-        behavior='padding'
-        style={styles.container}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={{flex: 1}}>
-            <LogoComponent/>
-            <SocialIcon
-              title='Sign In With Facebook'
-              button
-              loading={this.state.fbLoading}
-              type='facebook'
-              onPress={this.logInWithFb}
-            />
-            <CredentialsFormComponent
-              onEmailChange={this.onEmailChange}
-              onPasswordChange={this.onPasswordChange}
-              submitHandler={this.signInWithCredentials}
-              submitText='Login'
-              validationMessageEmail={this.state.validationMessageEmail}
-              validationMessagePassword={this.state.validationMessagePassword}
-              validationMessageEmailVisible={this.state.validationMessageEmailVisible}
-              validationMessagePasswordVisible={this.state.validationMessagePasswordVisible}/>
-            <RNButton
-              title={`Don't have account? Sign up`}
-              onPress={this.navToSignUp}
-            />
-            {this.state.loading && <LoadingComponent/>}
-          </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+        <KeyboardAvoidingView
+            behavior='padding'
+            style={styles.container}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={{flex: 1}}>
+              <LogoComponent/>
+              <SocialIcon
+                  title='Sign In With Facebook'
+                  button
+                  loading={this.state.fbLoading}
+                  type='facebook'
+                  onPress={this.logInWithFb}
+              />
+              <CredentialsFormComponent
+                  onEmailChange={this.onEmailChange}
+                  onPasswordChange={this.onPasswordChange}
+                  submitHandler={this.signInWithCredentials}
+                  submitText='Login'
+                  validationMessageEmail={this.state.validationMessageEmail}
+                  validationMessagePassword={this.state.validationMessagePassword}
+                  validationMessageEmailVisible={this.state.validationMessageEmailVisible}
+                  validationMessagePasswordVisible={this.state.validationMessagePasswordVisible}/>
+              <RNButton
+                  title={`Don't have account? Sign up`}
+                  onPress={this.navToSignUp}
+              />
+              {this.state.loading && <LoadingComponent/>}
+            </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
     );
   }
 
   componentWillMount = () => {
     this.setState({loading: true});
+    console.log('auth listener in loginScreen created');
     const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        SecureStore.setItemAsync('user', JSON.stringify(user));
-        // console.log('login screen listener: user logged in, navigate to Main');
-        console.log(user);
-        if (user.emailVerified)
-          this.props.navigation.navigate('Main');
-      }
+      // console.log('login screen listener: user logged in, navigate to Main');
+      console.log('auth state changed');
+      if (user && user.emailVerified)
+        this.props.navigation.navigate('Main');
+      unsubscribe();
     });
     this.setState({loading: false});
+
   };
 
   onEmailChange = (email) => {
@@ -96,26 +96,26 @@ export default class LoginScreen extends React.Component {
       if (!user.emailVerified) {
         this.setState({loading: false});
         Alert.alert(
-          'Confirm sign up',
-          'Check you mailbox, click verification link and come back here'
+            'Confirm sign up',
+            'Check you mailbox, click verification link and come back here'
         );
       } else {
         this.props.navigation.navigate('Main');
       }
     } catch (error) {
       switch (error.code) {
-      case 'auth/invalid-email':
-        this.setState({validationMessageEmailVisible: true});
-        this.setState({validationMessageEmail: error.message});
-        break;
-      case 'auth/user-not-found':
-        this.setState({validationMessageEmailVisible: true});
-        this.setState({validationMessageEmail: error.message});
-        break;
-      case 'auth/wrong-password':
-        this.setState({validationMessagePasswordVisible: true});
-        this.setState({validationMessagePassword: error.message});
-        break;
+        case 'auth/invalid-email':
+          this.setState({validationMessageEmailVisible: true});
+          this.setState({validationMessageEmail: error.message});
+          break;
+        case 'auth/user-not-found':
+          this.setState({validationMessageEmailVisible: true});
+          this.setState({validationMessageEmail: error.message});
+          break;
+        case 'auth/wrong-password':
+          this.setState({validationMessagePasswordVisible: true});
+          this.setState({validationMessagePassword: error.message});
+          break;
       }
     }
     this.setState({loading: false});
@@ -136,12 +136,15 @@ export default class LoginScreen extends React.Component {
             name: user.displayName,
             photoURL: user.photoURL,
             events: [],
+            limit: 20,
+            daysToNotification: 5,
+            friendsNotification: [],
           });
           await user.sendEmailVerification();
           this.setState({loading: false});
           Alert.alert(
-            'Confirm sign up',
-            'Check you mailbox, click verification link and come back here'
+              'Confirm sign up',
+              'Check you mailbox, click verification link and come back here'
           );
           console.log('sent');
         } else {

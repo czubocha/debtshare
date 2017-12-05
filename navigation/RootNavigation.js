@@ -90,6 +90,6 @@ export default class RootNavigator extends React.Component {
 
   _handleNotification = ({origin, data}) => {
     console.log(`Push notification ${origin} with data: ${JSON.stringify(data)}`);
-    // Alert.alert('Notification', `You received notification from ${origin}`);
+    Alert.alert('Notification', `You received notification from ${origin}`);
   };
 }

@@ -70,6 +70,9 @@ export default class SignUpScreen extends React.Component {
         name: createdUser.displayName,
         photoURL: createdUser.photoURL,
         events: [],
+        limit: 20,
+        daysToNotification: 5,
+        friendsNotification: [],
       });
       firebase.auth().useDeviceLanguage();
       try {
@@ -79,7 +82,7 @@ export default class SignUpScreen extends React.Component {
           'Confirm sign up',
           'Check you mailbox, click verification link and come back here'
         );
-        console.log('sent');
+        // console.log('sent');
       } catch (error) {
         console.log(error)
       }

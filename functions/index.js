@@ -17,10 +17,6 @@ createEvent = (eventData, eventParams, type) => {
   let event = {};
   let updateEvents = {};
 
-  console.log(userId);
-  console.log(friendId);
-  console.log(debtId);
-
   db.collection('users').doc(userId).get().then(doc => {
     photoURL = doc.data().photoURL;
     name = doc.data().name;
@@ -32,7 +28,7 @@ createEvent = (eventData, eventParams, type) => {
         user: name,
         photoURL: photoURL,
         email: userId,
-        amount: eventData.amount,
+        amount: -eventData.amount,
         description: eventData.description,
         timestamp: eventData.timestamp,
       };
@@ -81,7 +77,7 @@ exports.rewriteAddedDebt = functions.firestore
         const updateBalance = db.collection('users').doc(friendId)
           .collection('friends').doc(userId)
           .update({
-            balance: friend.data().balance + newDebt.amount,
+            balance: Number((friend.data().balance + newDebt.amount).toFixed(2)),
           });
 
         const rewriteDebt = db.collection('users').doc(friendId)
@@ -107,7 +103,7 @@ exports.rewriteEditedDebt = functions.firestore
       newDebt.rewritten = true;
       newDebt.amount = -newDebt.amount;
 
-      // const updateEvents = createEvent(newDebt, event.params, 'edit');
+      const updateEvents = createEvent(newDebt, event.params, 'edit');
 
       db.collection('users').doc(friendId)
         .collection('friends').doc(userId)
@@ -117,7 +113,7 @@ exports.rewriteEditedDebt = functions.firestore
           const updateBalance = db.collection('users').doc(friendId)
             .collection('friends').doc(userId)
             .update({
-              balance: friend.data().balance + prevAmount + newDebt.amount,
+              balance: Number((friend.data().balance + prevAmount + newDebt.amount).toFixed(2)),
             });
 
           const rewriteDebt = db.collection('users').doc(friendId)
@@ -125,7 +121,7 @@ exports.rewriteEditedDebt = functions.firestore
             .collection('debts').doc(debtId)
             .set(newDebt);
 
-          return Promise.all([updateBalance, rewriteDebt]);
+          return Promise.all([updateBalance, rewriteDebt, updateEvents]);
         });
     }
     return -1;
@@ -145,6 +141,8 @@ exports.deleteDeletedDebt = functions.firestore
 
         if (doc.exists) {
 
+          const updateEvents = createEvent(event.data.previous.data(), event.params, 'delete');
+
           db.collection('users').doc(friendId)
             .collection('friends').doc(userId)
             .get().then(friend => {
@@ -152,7 +150,7 @@ exports.deleteDeletedDebt = functions.firestore
             const updateBalance = db.collection('users').doc(friendId)
               .collection('friends').doc(userId)
               .update({
-                balance: friend.data().balance + amount,
+                balance: Number((friend.data().balance + amount).toFixed(2)),
               });
 
             const deleteDebt = db.collection('users').doc(friendId)
@@ -160,7 +158,7 @@ exports.deleteDeletedDebt = functions.firestore
               .collection('debts').doc(debtId)
               .delete();
 
-            return Promise.all([updateBalance, deleteDebt]);
+            return Promise.all([updateBalance, deleteDebt, updateEvents]);
           });
         }
       }

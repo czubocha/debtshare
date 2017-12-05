@@ -5,6 +5,7 @@ import {FlatList, KeyboardAvoidingView, StyleSheet, TextInput, View, Alert} from
 import 'firebase/firestore';
 import * as firebase from 'firebase';
 import colors from '../constants/Colors';
+import LoadingComponent from "../components/LoadingComponent";
 
 export default class AddDebtComponent extends React.Component {
   state = {
@@ -14,6 +15,7 @@ export default class AddDebtComponent extends React.Component {
     amount: 0,
     description: '',
     category: '',
+    loading: false,
   };
 
   render() {
@@ -70,6 +72,7 @@ export default class AddDebtComponent extends React.Component {
           />
           <RNEButton style={{paddingBottom: 10}} title='Split' borderRadius={20} raised onPress={this.split}/>
         </KeyboardAvoidingView>
+          {this.state.loading && <LoadingComponent/>}
       </Container>
     );
   }
@@ -124,7 +127,7 @@ export default class AddDebtComponent extends React.Component {
   );
 
   markSwitched = index => {
-    console.log(this.state.friends[index]);
+    // console.log(this.state.friends[index]);
     const friends = this.state.friends;
     friends[index].switched = !friends[index].switched;
     this.setState(friends);
@@ -132,30 +135,37 @@ export default class AddDebtComponent extends React.Component {
   };
 
   split = async () => {
+      this.setState({loading: true});
     const user = this.props.navigation.state.params.user;
     const db = firebase.firestore();
     const friendsToSplit = [];
-    this.state.friends.forEach(friend => {
+    await this.state.friends.forEach(friend => {
       friend.switched && friendsToSplit.push(friend);
     });
-    friendsToSplit.forEach(async friend => {
+    let everybodyFriends = true;
+    for (let friend of friendsToSplit) {
+      // console.log('checking is ' + friend.email + ' friend of ' + user.email);
       const isFriend = await db.collection('users').doc(friend.email)
         .collection('friends').doc(user.email).get();
-      if (!isFriend.exists) {
+      if (await !isFriend.exists) {
+          everybodyFriends = false;
+          this.setState({loading: false});
+        // console.log('friend not found');
         Alert.alert('Hey!',
           `${friend.name} has not added you to friends`,
           [{
             text: 'Okey :(', onPress: () => {
-              this.setModalVisible();
-              this.setLoading();
+
             }
           }]);
-        return;
       }
-    });
+    }
+    // console.log('after checking');
+    if (!everybodyFriends) return;
     let total = String(this.state.amount).replace(',', '.');
     total = parseFloat(total);
-    const amount = this.state.checked ? total / (friendsToSplit.length + 1) : total / friendsToSplit.length;
+    let amount = this.state.checked ? total / (friendsToSplit.length + 1) : total / friendsToSplit.length;
+    amount = Number((amount).toFixed(2));
     const promises = [];
     friendsToSplit.forEach(friend => {
       promises.push(db.collection('users').doc(user.email)
@@ -174,12 +184,14 @@ export default class AddDebtComponent extends React.Component {
         }));
     });
     await Promise.all(promises);
-    console.log('total ', total);
-    console.log('amount ', amount);
+    this.props.navigation.goBack();
+    // console.log('total ', total);
+    // console.log('amount ', amount);
     friendsToSplit.forEach(friend => {
-      console.log(friend);
+      // console.log(friend);
     });
     promises.forEach(promise => console.log('promise ', promise));
+      this.setState({loading: false});
   };
 }
 

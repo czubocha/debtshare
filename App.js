@@ -27,6 +27,15 @@ const firebaseConfig = {
   projectId: 'debtshare'
 };
 
+const originalSend = XMLHttpRequest.prototype.send;
+XMLHttpRequest.prototype.send = function(body) {
+  if (body === '') {
+    originalSend.call(this);
+  } else {
+    originalSend.call(this, body);
+  }
+};
+
 export default class App extends React.Component {
   state = {
     isReady: false,

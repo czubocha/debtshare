@@ -14,7 +14,7 @@ import LoadingComponent from '../components/LoadingComponent';
 
 export default class FriendsScreen extends React.Component {
   state = {
-    loading: true,
+    loading: false,
     user: {},
     friends: [],
     modalVisible: false,
@@ -68,10 +68,14 @@ export default class FriendsScreen extends React.Component {
   }
 
   componentDidMount = async () => {
-    const userJson = await SecureStore.getItemAsync('user');
-    const user = JSON.parse(userJson);
-    this.setState({user});
-    await this.getFriends();
+      firebase.auth().onAuthStateChanged((user) => {
+         if (user) {
+              this.setState({user});
+              this.getFriends();
+          } else {
+              this.setState({user});
+          }
+      });
   };
 
   showFriendInfo = async (friendChosen) => {
