@@ -283,6 +283,14 @@ exports.calculateStatistics = functions.https.onRequest((req, res) => {
         }
       });
 
+      if(maxBalance == Number.MIN_SAFE_INTEGER) {
+        maxBalance = 0;
+      }
+
+      if(minBalance == Number.MAX_SAFE_INTEGER) {
+        minBalance = 0;
+      }
+
       const response = {
         maxBalance, maxFriend: maxFriend, minBalance, minFriend,
         maxFriendCategoryAmount, maxFriendCategoryName, minMyCategoryAmount, minMyCategoryName

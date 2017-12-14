@@ -76,6 +76,7 @@ export default class SignUpScreen extends React.Component {
       });
       firebase.auth().useDeviceLanguage();
       try {
+        console.log(firebase.auth.currentUser);
         await firebase.auth().currentUser.sendEmailVerification();
         this.props.navigation.goBack();
         Alert.alert(
@@ -84,7 +85,7 @@ export default class SignUpScreen extends React.Component {
         );
         // console.log('sent');
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
     } catch (error) {
       switch (error.code) {

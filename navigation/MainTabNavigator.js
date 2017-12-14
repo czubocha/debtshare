@@ -1,5 +1,5 @@
 import React from 'react';
-import {Platform} from 'react-native';
+import {Platform, Alert} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {TabNavigator, TabBarBottom} from 'react-navigation';
 
@@ -10,6 +10,8 @@ import FriendsScreen from '../screens/FriendsScreen';
 import UserScreen from '../screens/UserScreen';
 import FriendInfoScreen from '../screens/FriendInfoScreen';
 import FriendInfo from './FriendInfoNavigator';
+import {Notifications} from 'expo';
+import registerForPushNotificationsAsync from '../api/registerForPushNotificationsAsync';
 
 const RootTabNavigator = TabNavigator(
   {

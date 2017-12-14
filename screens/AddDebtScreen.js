@@ -46,6 +46,7 @@ export default class AddDebtComponent extends React.Component {
           <FormInput
             onChangeText={this.onChangeAmount}
             inputStyle={styles.amountInput}
+            keyboardType='numeric'
           />
           <FormLabel>Description</FormLabel>
           <FormInput

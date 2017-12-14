@@ -1,4 +1,4 @@
-import {BlurView, Facebook, SecureStore} from 'expo';
+import {BlurView, Facebook, Notifications, SecureStore} from 'expo';
 import React from 'react';
 import {
   StyleSheet, KeyboardAvoidingView, ActivityIndicator, Button as RNButton,
@@ -10,6 +10,7 @@ import LogoComponent from '../components/LogoComponent';
 import CredentialsFormComponent from '../components/CredentialsFormComponent';
 import {Button, SocialIcon} from 'react-native-elements';
 import LoadingComponent from '../components/LoadingComponent';
+import registerForPushNotificationsAsync from "../api/registerForPushNotificationsAsync";
 
 const appId = '232916540574459';
 const tokenName = 'token';
@@ -67,12 +68,36 @@ export default class LoginScreen extends React.Component {
     const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
       // console.log('login screen listener: user logged in, navigate to Main');
       console.log('auth state changed');
-      if (user && user.emailVerified)
+      if (user && user.emailVerified) {
         this.props.navigation.navigate('Main');
+        console.log('notifications registered')
+        this._notificationSubscription = this._registerForPushNotifications();
+      }
+      else {
+        this._notificationSubscription && this._notificationSubscription.remove();
+      }
       unsubscribe();
     });
     this.setState({loading: false});
 
+  };
+
+  _registerForPushNotifications() {
+    // Send our push token over to our backend so we can receive notifications
+    // You can comment the following line out if you want to stop receiving
+    // a notification every time you open the app. Check out the source
+    // for this function in api/registerForPushNotificationsAsync.js
+    registerForPushNotificationsAsync();
+
+    // Watch for incoming notifications
+    this._notificationSubscription = Notifications.addListener(
+        this._handleNotification
+    );
+  }
+
+  _handleNotification = ({origin, data}) => {
+    console.log(`Push notification ${origin} with data: ${JSON.stringify(data)}`);
+    Alert.alert('Notification', `You received notification from ${origin}`);
   };
 
   onEmailChange = (email) => {
